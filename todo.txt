@@ -1,0 +1,29 @@
+PIPESCRIPT JIT COMPILER
+
+jit compile to javascript.
+every function runs in its own context
+
+$name -> mutable data
+name -> immutable data
+
+DONE
+----
+add code blocks
+function multiple argumets problem
+conditional flow
+while loops
+parsing
+  strings
+  scopes
+  pipes
+
+functions
+  calling
+  return statments
+
+TODO
+----
+declaring a variable
+functions
+  anonymous functions
+  called directly

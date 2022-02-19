@@ -1,0 +1,5 @@
+call lol
+call lol
+
+function lol
+  log 'hello'
