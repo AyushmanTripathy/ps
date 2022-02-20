@@ -1,0 +1,10 @@
+# fibonacci
+
+log | fibonacci 1 0 [subtract 1 2]
+
+function fibonacci a b limit
+  if | eq limit 0
+    return a
+  elseif | lt limit 0
+    return b
+  return | fibonacci [add a b] a [subtract limit 1]

@@ -1,17 +1,20 @@
 PIPESCRIPT JIT COMPILER
 
+everything is a function
 jit compile to javascript.
 every function runs in its own context
 
-$name -> mutable data
-name -> immutable data
+representing data in function
+const op = () => 100
 
 DONE
 ----
+Math function
+immutable variables
+interactive mode
 add code blocks
-function multiple argumets problem
 conditional flow
-while loops
+
 parsing
   strings
   scopes
@@ -23,7 +26,9 @@ functions
 
 TODO
 ----
-declaring a variable
+high order functions
+  functions passed to functions
+iteration
 functions
   anonymous functions
-  called directly
+arrays

@@ -20,13 +20,12 @@ export default function compile(scope, scopes) {
     } else {
       // compile pipes
       line = line.split("|");
-      if (line[0] == "return") {
-        line.shift();
-        output += `return ${compilePipes(line)}\n`;
+      if (line[0].startsWith("return")) {
+        output += `${line.shift()} ${compilePipes(line)}\n`;
       } else output += compilePipes(line) + "\n";
     }
   }
-  return output
+  return output.replaceAll("$","heap.")
 }
 
 function compileBlocks(line) {
