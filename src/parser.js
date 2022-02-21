@@ -2,77 +2,109 @@ export default (file) => {
   // parse strings
   const strs = [];
   const parseStrings = (quote) => {
-    const strings = file.match(
-      new RegExp(`${quote}(.||\n)[^${quote}]*${quote}`, "g")
-    );
-    if (strings) {
-      for (const string of strings) {
-        file = file.replace(string, `%str${strs.length}%`);
+    file = parseRegex(
+      file,
+      new RegExp(`${quote}(.||\n)[^${quote}]*${quote}`, "g"),
+      (string) => {
         strs.push(string);
+        return `%str${strs.length - 1}%`;
       }
-    }
+    );
   };
   parseStrings('"');
   parseStrings("'");
 
   // parse comments
   file = file.replaceAll(/#.*\n/g, "\n");
-
-  // remove abundant new lines
-  file = file.replaceAll(/\n\s*\n/g, "\n");
-
-  // replace ; with \n
-  file = file.replaceAll(";", "\n");
+  // replace , with \s
+  file = file.replaceAll(",", "s");
   file = file.replaceAll("[", "<").replaceAll("]", ">");
+  // collapse new lines
+  file = file.replaceAll("\n", "");
+  // remove abundant \s
+  file = parseRegex(file, "  ", () => " ");
 
-  // check indentation
-  file = file.split("\n").filter(Boolean);
+  const scopes = [];
+  const scopeStack = [0];
+  scopes[0] = "";
 
-  let lastIndex = -1;
-  let lastTabCount = 0;
-  let hash = 0;
+  let hash_no = 0;
+  const hash = () => {
+    hash_no++;
+    return hash_no;
+  };
+  const add = (s) => (scopes[last(scopeStack)] += s);
 
-  const scopes = {};
-  scopes.global = [];
-  file[-1] = "";
-  file.push("")
-  let scopeStack = ["global"];
-
-  for (let line of file) {
-    const tabCount = countTabs(line);
-    line = file[lastIndex + 1] = line.trim();
-
-    if (tabCount == lastTabCount) {
-      // still in current scope
-      scopes[last(scopeStack)].push(file[lastIndex]);
-    } else if (tabCount > lastTabCount) {
-      // into to new scope
-      if (file[lastIndex].startsWith("function")) {
-        // into a new function
-        const declaration = file[lastIndex].split(" ").filter(Boolean);
-        const functionName = declaration[1];
-        scopeStack.push(functionName);
-        scopes[functionName] = [file[lastIndex]];
-      } else {
-        const declaration = `${file[lastIndex].split(" ",1)[0]}#${hash}`;
-        scopes[last(scopeStack)].push(`#${declaration}#`);
-        scopeStack.push(declaration)
-        scopes[declaration] = [file[lastIndex]];
-        hash++;
-      }
-    } else {
-      // out of current scope
-      scopes[last(scopeStack)].push(file[lastIndex]);
-      scopeStack = scopeStack.slice(0,tabCount - lastTabCount);
-    }
-
-    lastIndex++;
-    lastTabCount = tabCount;
+  for (const s of file) {
+    if (s == "{") {
+      const hash_code = hash();
+      scopes[hash_code] = "";
+      add(hash_code + "#");
+      scopeStack.push(hash_code);
+    } else if (s == "}") scopeStack.pop();
+    else add(s);
   }
-  scopes.strs__ = strs;
-  scopes.global.shift();
-  return scopes;
+
+  const functions = {};
+  // parse functions
+  const parseFunctions = (code) => {
+    const parameters = code
+      .match(/\((.||\n)[^\(\)]*\)/g)[0]
+      .slice(1, -1)
+      .split(" ")
+      .filter(Boolean);
+    code = code.split("=>", 2)[1];
+
+    if (code.includes("#")) code = scopes[code.trim().slice(0, -1)].trim();
+    else code = "return |" + code;
+
+    return {
+      code,
+      parameters,
+    };
+  };
+
+  // name functions
+  const parseNamedFunctions = (code) => {
+    const name = code.split("(", 1)[0];
+    functions[name] = parseFunctions(code, name);
+    return "";
+  };
+
+  functions.global = {
+    code: parseRegex(
+      scopes[0],
+      /[a-z1-9_]+\((.||\n)[^\(\)]*\)\s*=>\s*([1-9]+#|(.|\n)[^;]*;)/gi,
+      parseNamedFunctions
+    ),
+  };
+
+  for (const key in functions) {
+    functions[key].funcs = {};
+    functions[key].code = parseRegex(
+      functions[key].code,
+      /\((.||\n)[^\(\)]*\)\s*=>\s*([1-9]+#|(.|\n)[^;]*;)/gi,
+      (code) => {
+        const hash_name = `func${hash()}`;
+        functions[key].funcs[hash_name] = parseFunctions(code, hash_name);
+        return "funcs." + hash_name;
+      }
+    );
+  }
+
+  functions.strs__ = strs;
+  return functions;
 };
+
+function parseRegex(file, regex, callback) {
+  const matches = file.match(regex);
+  if (matches) {
+    for (const match of matches) {
+      file = file.replace(match, callback(match));
+    }
+  } else return file;
+  return parseRegex(file, regex, callback);
+}
 
 function countTabs(line) {
   let tabCount = 0;

@@ -4,30 +4,17 @@ everything is a function
 jit compile to javascript.
 every function runs in its own context
 
-representing data in function
-const op = () => 100
-
 DONE
 ----
-Math function
-immutable variables
-interactive mode
-add code blocks
-conditional flow
-
-parsing
-  strings
-  scopes
-  pipes
-
-functions
-  calling
-  return statments
+parsing arrow functions
+string subtitution
 
 TODO
 ----
+passing context with name!
+error handling
 high order functions
-  functions passed to functions
+
 iteration
 functions
   anonymous functions

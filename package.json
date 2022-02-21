@@ -1,19 +1,16 @@
 {
   "name": "ps",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "",
   "main": "src/index.js",
   "type": "module",
-  "bin":{
+  "bin": {
     "pipescript": "src/index.js"
   },
   "scripts": {
-    "dev": "nodemon src/index.js test.pipescript"
+    "dev": "DEV=true nodemon src/index.js test.pipescript"
   },
-  "keywords": [
-    "functional",
-    "interpreter"
-  ],
+  "keywords": ["functional", "interpreter"],
   "author": "Ayushman Tripathy",
   "license": "MIT",
   "dependencies": {

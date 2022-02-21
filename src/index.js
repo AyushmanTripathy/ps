@@ -8,7 +8,9 @@ import { createInterface } from "readline";
 globalThis.log = (s) => console.log(s);
 globalThis.error = (e) => {
   log(red(`[${e.name}] `) + e.message);
+  if (process.env.DEV) log(e);
 };
+globalThis.DEV = process.env.DEV
 
 init();
 function init(path) {

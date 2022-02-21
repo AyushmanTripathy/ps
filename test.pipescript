@@ -1,13 +1,17 @@
-set "height" | divide 30 2
+log "global";
 
-draw $height 1
-draw 1 $height true
+hello(name) => add "hello " $name;
 
-function draw space star down
-  if | not | or [eq $space 0] [eq $star 0]
-    log | add [repeat ' ' $space] [repeat '*' | multiply 2 $star]
+greet(name, cpital) => {
+  log () => {
+    add 12 34
+  };
+  return | log "i was told to greet";
+}
 
-    if $down
-      draw [add $space 1] [subtract $star 1] $down
-    else
-      draw [subtract $space 1] [add $star 1]
+introduce(yourName) => {
+  return | log "myself $yourName";
+}
+
+log | hello "ayush";
+introduce "man";

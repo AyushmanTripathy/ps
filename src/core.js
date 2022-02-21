@@ -1,15 +1,15 @@
 import parser from "./parser.js";
-import compile from "./compiler.js";
+import compile, { compileStrings } from "./compiler.js";
 import { createContext, runInNewContext } from "vm";
 
 export default (sourceCode) => {
-  const scope = parser(sourceCode);
-  scope.global = compile(scope.global, scope);
-
-  const run = (code, context) => {
+  const scopes = parser(sourceCode);
+  scopes.strs__ = compileStrings(scopes.strs__)
+  if (DEV) log(scopes);
+  const run = (source, code, context) => {
     try {
       runInNewContext(
-        `return__=(()=>{${clearPointer(code, scope.strs__)}})()`,
+        `return__=(()=>{${clearPointer(code, scopes.strs__)}})()`,
         context
       );
       return context.return__;
@@ -72,26 +72,24 @@ export default (sourceCode) => {
   }
   Context.prototype.call = (name) => {
     return (args) => {
-      if (!scope[name].compiled) {
-        const parameters = scope[name]
-          .shift()
-          .split(" ")
-          .filter(Boolean)
-          .slice(2);
-
-        const code = compile(scope[name], scope);
-        scope[name] = { code, parameters, compiled: true };
+      if (!scopes[name].compiled) {
+        scopes[name].code = compile(scopes[name].code);
+        scopes[name].compiled = true;
       }
       const variables = {};
-      for (const arg of scope[name].parameters) {
+      for (const arg of scopes[name].parameters) {
         variables[arg] = args.shift();
       }
-      return run(scope[name].code, new Context(Object.keys(scope), variables));
+      return run(
+        name,
+        scopes[name].code,
+        new Context(Object.keys(scopes), variables)
+      );
     };
   };
 
-  const globalContext = new Context(Object.keys(scope), {});
-  return run(scope.global, globalContext);
+  const globalContext = new Context(Object.keys(scopes), {});
+  return run("global", compile(scopes.global.code), globalContext);
 };
 
 function clearPointer(code, strs) {

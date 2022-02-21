@@ -1,31 +1,19 @@
-export default function compile(scope, scopes) {
+export default function compile(scope) {
   // pipescript -> javascript
+  scope = scope.split(";").filter((s) => Boolean(s.trim()));
 
   // seprate code blocks
   for (let index in scope) scope[index] = compileBlocks(scope[index]);
 
   let output = "";
   for (let line of scope) {
-    if (line[0] === "#") {
-      // compile refrences
-      line = line.slice(1, -1);
-      let declaration = scopes[line].shift();
-      if (declaration != "else") {
-        const spaceIndex = declaration.indexOf(" ");
-        declaration =
-          declaration.slice(0, spaceIndex + 1).replace("elseif", "else if") +
-          compileBlocks(`(<pass ${declaration.slice(spaceIndex)}>)`);
-      }
-      output += `${declaration} {${compile(scopes[line], scopes)}}`;
-    } else {
-      // compile pipes
-      line = line.split("|");
-      if (line[0].startsWith("return")) {
-        output += `${line.shift()} ${compilePipes(line)}\n`;
-      } else output += compilePipes(line) + "\n";
-    }
+    // compile pipes
+    line = line.split("|").map(a => a.trim());
+    if (line[0].startsWith("return")) {
+      output += `${line.shift()} ${compilePipes(line)}\n`;
+    } else output += compilePipes(line) + "\n";
   }
-  return output.replaceAll("$","heap.")
+  return output.replaceAll("$", "heap.");
 }
 
 function compileBlocks(line) {
@@ -44,4 +32,21 @@ function compilePipes(line) {
   return `${statment.shift()}([${statment.join(",")}${
     statment.length ? "," : ""
   }${compilePipes(line)}])`;
+}
+
+export function compileStrings(strings) {
+  for (const i in strings) {
+    if ((strings[i][0] == '"') & strings[i].includes("$")) {
+      strings[i] = "`" + strings[i].slice(1, -1) + "`";
+      const matches = strings[i].match(/\$[a-z1-9_]*/gi);
+      if (matches) {
+        for (const match of matches)
+          strings[i] = strings[i].replace(
+            match,
+            `\${${match.replace("$", "heap.")}}`
+          );
+      }
+    }
+  }
+  return strings;
 }
