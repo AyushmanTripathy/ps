@@ -1,21 +1,18 @@
-PIPESCRIPT JIT COMPILER
+PIPESCRIPT INTERPRETER
 
 everything is a function
 jit compile to javascript.
 every function runs in its own context
+all functions have to be declared inside global function
 
 DONE
 ----
-parsing arrow functions
-string subtitution
-
 TODO
 ----
 passing context with name!
 error handling
-high order functions
+
+cannot declare anonymous function in another anonymous function
 
 iteration
-functions
-  anonymous functions
 arrays

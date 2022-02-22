@@ -4,8 +4,7 @@ import { createContext, runInNewContext } from "vm";
 
 export default (sourceCode) => {
   const scopes = parser(sourceCode);
-  scopes.strs__ = compileStrings(scopes.strs__)
-  if (DEV) log(scopes);
+  scopes.strs__ = compileStrings(scopes.strs__);
   const run = (source, code, context) => {
     try {
       runInNewContext(
@@ -18,12 +17,13 @@ export default (sourceCode) => {
     }
   };
 
-  function Context(userFunctions, vars) {
+  function Context(userFunctions, vars, funcs) {
     const functions = {};
     for (const func of userFunctions) {
       functions[func] = this.call(func);
     }
     return {
+      funcs,
       heap: vars,
       pass: (args) => args[0],
       exit: ([a]) => process.exit(a ? a : 0),
@@ -70,25 +70,53 @@ export default (sourceCode) => {
       ...functions,
     };
   }
+  const parseArgs = (parameters, args) => {
+    const variables = {};
+    for (const arg of parameters) {
+      variables[arg] = args.shift();
+    }
+    return variables;
+  };
+  const compileAnonymousFunctions = (name) => {
+    // compile anonymous functions
+    for (const func in scopes[name].funcs) {
+      const scope = { ...scopes[name].funcs[func] };
+      scopes[name].funcs[func] = (args) => {
+        return run(
+          name,
+          compile(scope.code),
+          new Context(
+            Object.keys(scopes),
+            parseArgs(scope.parameters, args),
+            {}
+          )
+        );
+      };
+    }
+  };
   Context.prototype.call = (name) => {
     return (args) => {
       if (!scopes[name].compiled) {
         scopes[name].code = compile(scopes[name].code);
+        compileAnonymousFunctions(name);
         scopes[name].compiled = true;
       }
-      const variables = {};
-      for (const arg of scopes[name].parameters) {
-        variables[arg] = args.shift();
-      }
+      const variables = parseArgs(scopes[name].parameters, args);
       return run(
         name,
         scopes[name].code,
-        new Context(Object.keys(scopes), variables)
+        new Context(Object.keys(scopes), variables, scopes[name].funcs)
       );
     };
   };
 
-  const globalContext = new Context(Object.keys(scopes), {});
+  compileAnonymousFunctions("global");
+  const globalContext = new Context(
+    Object.keys(scopes),
+    {},
+    scopes.global.funcs
+  );
+  if (DEV) log(scopes);
   return run("global", compile(scopes.global.code), globalContext);
 };
 

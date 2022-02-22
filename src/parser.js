@@ -87,12 +87,15 @@ export default (file) => {
       (code) => {
         const hash_name = `func${hash()}`;
         functions[key].funcs[hash_name] = parseFunctions(code, hash_name);
-        return "funcs." + hash_name;
+
+        // there is a problem with ; at end
+        return `funcs.${hash_name}${code.includes(";") ? ";" : ""}`;
       }
     );
   }
 
   functions.strs__ = strs;
+  functions.global.parameters = [];
   return functions;
 };
 

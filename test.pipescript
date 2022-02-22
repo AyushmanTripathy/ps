@@ -1,11 +1,7 @@
-log "global";
+hello(name) => add "hello" | $name;
 
-hello(name) => add "hello " $name;
-
-greet(name, cpital) => {
-  log () => {
-    add 12 34
-  };
+greet(name) => {
+  log | $name 10;
   return | log "i was told to greet";
 }
 
@@ -13,5 +9,9 @@ introduce(yourName) => {
   return | log "myself $yourName";
 }
 
-log | hello "ayush";
+log | hello () => add 12 3;
 introduce "man";
+
+greet (a) => {
+  return | add 45 $a;
+}

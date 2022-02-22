@@ -1,6 +1,15 @@
 # CHANGELOG FOR PIPESCRIPT
 
-### 0.1.0
+### 0.2
+
+#### ADDED
+
+- high order functions
+- anonymous functions
+- arrow functions
+- string subtitution
+
+### 0.1
 
 #### ADDED
 
@@ -9,7 +18,7 @@
 - Immutable variables
 - Math functions
 
-### 0.0.0
+### 0.0
 
 #### ADDED
 
