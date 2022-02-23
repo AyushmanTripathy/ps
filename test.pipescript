@@ -1,17 +1,2 @@
-hello(name) => add "hello" | $name;
-
-greet(name) => {
-  log | $name 10;
-  return | log "i was told to greet";
-}
-
-introduce(yourName) => {
-  return | log "myself $yourName";
-}
-
-log | hello () => add 12 3;
-introduce "man";
-
-greet (a) => {
-  return | add 45 $a;
-}
+set "arr" | Array 10 2 3;
+log | reduce $arr 0 (acc cur) => add $acc $cur;

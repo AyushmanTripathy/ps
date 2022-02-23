@@ -1,4 +1,6 @@
-export default function compile(scope) {
+const last = (arr) => arr[arr.length - 1];
+
+export default function compile(scope, blocks) {
   // pipescript -> javascript
   scope = scope.split(";").filter((s) => Boolean(s.trim()));
 
@@ -7,11 +9,28 @@ export default function compile(scope) {
 
   let output = "";
   for (let line of scope) {
-    // compile pipes
-    line = line.split("|").map(a => a.trim());
-    if (line[0].startsWith("return")) {
-      output += `${line.shift()} ${compilePipes(line)}\n`;
-    } else output += compilePipes(line) + "\n";
+    line = line.trim();
+    if (line.startsWith("if") || line.startsWith("else")) {
+      line = line.split(":");
+      line[0] = line[0].split("if");
+      if (line[0].length == 2) {
+        output += `${line[0][0] + "if"}(${compilePipes(
+          `pass ${line[0][1]}`.split("|").map((a) => a.trim())
+        )})`;
+      } else output += "else ";
+      line = last(line).trim();
+    }
+    if (line.match(/^[0-9]*#/g)) {
+      output += compile(blocks[line.split("#", 1)[0]], blocks);
+      line = line.split("#").slice(1);
+      if (line.length > 1) throw "} a semicoloum is expected here.";
+    } else {
+      // compile pipes
+      line = line.split("|").map((a) => a.trim());
+      if (line[0].startsWith("return")) {
+        output += `${line.shift()} ${compilePipes(line)}\n`;
+      } else output += compilePipes(line) + "\n";
+    }
   }
   return output.replaceAll("$", "heap.");
 }
@@ -38,7 +57,7 @@ export function compileStrings(strings) {
   for (const i in strings) {
     if ((strings[i][0] == '"') & strings[i].includes("$")) {
       strings[i] = "`" + strings[i].slice(1, -1) + "`";
-      const matches = strings[i].match(/\$[a-z1-9_]*/gi);
+      const matches = strings[i].match(/\$[a-z0-9_]*/gi);
       if (matches) {
         for (const match of matches)
           strings[i] = strings[i].replace(

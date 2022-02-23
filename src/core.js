@@ -2,13 +2,14 @@ import parser from "./parser.js";
 import compile, { compileStrings } from "./compiler.js";
 import { createContext, runInNewContext } from "vm";
 
-export default (sourceCode) => {
-  const scopes = parser(sourceCode);
-  scopes.strs__ = compileStrings(scopes.strs__);
+export default (sourceCode, inputs) => {
+  let [scopes, strs, blocks] = parser(sourceCode);
+  strs = compileStrings(strs);
+
   const run = (source, code, context) => {
     try {
       runInNewContext(
-        `return__=(()=>{${clearPointer(code, scopes.strs__)}})()`,
+        `return__=(()=>{${clearPointer(code, strs)}})()`,
         context
       );
       return context.return__;
@@ -28,11 +29,15 @@ export default (sourceCode) => {
       pass: (args) => args[0],
       exit: ([a]) => process.exit(a ? a : 0),
 
+      Number: ([a]) => Number(a),
+      Array: (arr) => arr,
+
       // logic
       lt: ([a, b]) => a < b,
       gt: ([a, b]) => a > b,
       eq: ([a, b]) => a === b,
       not: ([a]) => !a,
+      ternary: ([a, b, c]) => (a ? b : c),
       or: (args) => {
         for (const arg of args) {
           if (arg) return true;
@@ -48,6 +53,11 @@ export default (sourceCode) => {
 
       // string functions
       repeat: ([a, b]) => a.repeat(b),
+      // array functions
+      length: ([a]) => a.length,
+      filter: ([a, b]) => a.filter((x) => b([x])),
+      map: ([a, b]) => a.map((x) => b([x])),
+      reduce: ([a, b, c]) => a.reduce((acc, cur) => c([acc, cur]), b),
 
       // arithmetic
       add: (args) => args.reduce((acc, cur) => acc + cur),
@@ -84,7 +94,7 @@ export default (sourceCode) => {
       scopes[name].funcs[func] = (args) => {
         return run(
           name,
-          compile(scope.code),
+          compile(scope.code, blocks),
           new Context(
             Object.keys(scopes),
             parseArgs(scope.parameters, args),
@@ -97,7 +107,7 @@ export default (sourceCode) => {
   Context.prototype.call = (name) => {
     return (args) => {
       if (!scopes[name].compiled) {
-        scopes[name].code = compile(scopes[name].code);
+        scopes[name].code = compile(scopes[name].code, blocks);
         compileAnonymousFunctions(name);
         scopes[name].compiled = true;
       }
@@ -110,14 +120,17 @@ export default (sourceCode) => {
     };
   };
 
+  const globalInputs = {};
+  for (const i in inputs) globalInputs[`env${i}`] = inputs[i];
+
   compileAnonymousFunctions("global");
   const globalContext = new Context(
     Object.keys(scopes),
-    {},
+    globalInputs,
     scopes.global.funcs
   );
   if (DEV) log(scopes);
-  return run("global", compile(scopes.global.code), globalContext);
+  return run("global", compile(scopes.global.code, blocks), globalContext);
 };
 
 function clearPointer(code, strs) {

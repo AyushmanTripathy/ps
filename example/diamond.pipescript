@@ -1,13 +1,13 @@
-set "height" | divide 30 2
+set "height" | round | divide [ternary $env0 $env0 10] 2;
 
-draw $height 1
-draw 1 $height true
+draw $height 1;
+draw 1 $height true;
 
-function draw space star down
-  if | not | or [eq $space 0] [eq $star 0]
-    log | add [repeat ' ' $space] [repeat '*' | multiply 2 $star]
+draw(space star down) => {
+  if | or [eq $space 0] [eq $star 0]: return;
 
-    if $down
-      draw [add $space 1] [subtract $star 1] $down
-    else
-      draw [subtract $space 1] [add $star 1]
+  log | add [repeat ' ' $space] [repeat '*' | multiply 2 $star];
+
+  if $down: draw [add $space 1] [subtract $star 1] $down;
+  else: draw [subtract $space 1] [add $star 1];
+}

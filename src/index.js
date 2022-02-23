@@ -10,16 +10,25 @@ globalThis.error = (e) => {
   log(red(`[${e.name}] `) + e.message);
   if (process.env.DEV) log(e);
 };
-globalThis.DEV = process.env.DEV
+globalThis.DEV = process.env.DEV;
 
 init();
 function init(path) {
   const { words, options } = parseArgs(process.argv.slice(2));
-  if (!words.length) interactive();
-  else execute(readFileSync(words[0], "utf-8"));
+  for (const option in options) {
+    switch (option) {
+      case "h":
+        return help();
+      case "-dev":
+        DEV = options[option];
+        break;
+    }
+  }
+  if (!words.length) interactive(words.slice(1));
+  else execute(readFileSync(words[0], "utf-8"), words.slice(1));
 }
 
-function interactive() {
+function interactive(inputs) {
   log(bold("PIPESCRIPT INTERPRETER"));
   const rl = createInterface({
     input: process.stdin,
@@ -50,11 +59,12 @@ function parseArgs(args) {
   const words = [];
 
   let temp;
-  for (const arg of args) {
+  for (let arg of args) {
     if (arg.startsWith("-")) {
       temp = arg.substring(1);
       options[temp] = true;
     } else if (temp) {
+      if (arg == "false") arg = false;
       options[temp] = arg;
       temp = null;
     } else {
@@ -63,4 +73,8 @@ function parseArgs(args) {
   }
 
   return { options, words };
+}
+
+function help() {
+  return log(readFileSync(new URL("../help.txt", import.meta.url), "utf-8"));
 }

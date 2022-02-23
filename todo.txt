@@ -7,12 +7,14 @@ all functions have to be declared inside global function
 
 DONE
 ----
+
 TODO
 ----
 passing context with name!
 error handling
-
-cannot declare anonymous function in another anonymous function
-
-iteration
 arrays
+iteration
+
+help
+watch
+cannot declare anonymous function in another anonymous function

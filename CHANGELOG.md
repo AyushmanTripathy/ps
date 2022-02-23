@@ -1,4 +1,11 @@
-# CHANGELOG FOR PIPESCRIPT
+## CHANGELOG FOR PIPESCRIPT
+
+### 0.3
+
+#### ADDED
+
+- cli inputs
+- conditional flow
 
 ### 0.2
 

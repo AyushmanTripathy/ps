@@ -1,10 +1,10 @@
 # fibonacci
+set "x" | Number | ternary $env0 $env0 10;
+log "fibonnaci of $x is" | fibonacci 1 0 | add $x 1 -2;
 
-log | fibonacci 1 0 [subtract 1 2]
+fibonacci(a b limit) => {
+  if | eq $limit 0: return $a;
+  else if | lt $limit 0: return $b;
 
-function fibonacci a b limit
-  if | eq limit 0
-    return a
-  elseif | lt limit 0
-    return b
-  return | fibonacci [add a b] a [subtract limit 1]
+  return | fibonacci [add $a $b] $a [subtract $limit 1];
+}

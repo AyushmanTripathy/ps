@@ -8,7 +8,7 @@
     "pipescript": "src/index.js"
   },
   "scripts": {
-    "dev": "DEV=true nodemon src/index.js test.pipescript"
+    "dev": "DEV=true nodemon src/index.js test.pipescript 4"
   },
   "keywords": ["functional", "interpreter"],
   "author": "Ayushman Tripathy",

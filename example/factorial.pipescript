@@ -1,0 +1,8 @@
+# fibonacci
+set "x" | Number | ternary $env0 $env0 3;
+log "factorial of $x is" | factorial $x 1 1;
+
+factorial(max curr acc) => {
+  if [gt $curr $max]: return $acc;
+  return | factorial $max [add $curr 1] [multiply $curr $acc];
+}

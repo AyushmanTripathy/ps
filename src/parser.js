@@ -17,7 +17,7 @@ export default (file) => {
   // parse comments
   file = file.replaceAll(/#.*\n/g, "\n");
   // replace , with \s
-  file = file.replaceAll(",", "s");
+  file = file.replaceAll(",", " ");
   file = file.replaceAll("[", "<").replaceAll("]", ">");
   // collapse new lines
   file = file.replaceAll("\n", "");
@@ -53,8 +53,8 @@ export default (file) => {
       .slice(1, -1)
       .split(" ")
       .filter(Boolean);
-    code = code.split("=>", 2)[1];
 
+    code = code.split("=>", 2)[1];
     if (code.includes("#")) code = scopes[code.trim().slice(0, -1)].trim();
     else code = "return |" + code;
 
@@ -77,6 +77,7 @@ export default (file) => {
       /[a-z1-9_]+\((.||\n)[^\(\)]*\)\s*=>\s*([1-9]+#|(.|\n)[^;]*;)/gi,
       parseNamedFunctions
     ),
+    parameters: [],
   };
 
   for (const key in functions) {
@@ -87,16 +88,11 @@ export default (file) => {
       (code) => {
         const hash_name = `func${hash()}`;
         functions[key].funcs[hash_name] = parseFunctions(code, hash_name);
-
-        // there is a problem with ; at end
         return `funcs.${hash_name}${code.includes(";") ? ";" : ""}`;
       }
     );
   }
-
-  functions.strs__ = strs;
-  functions.global.parameters = [];
-  return functions;
+  return [functions,strs,scopes];
 };
 
 function parseRegex(file, regex, callback) {
